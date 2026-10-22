@@ -3,7 +3,7 @@
   "short_name": "FC 27 Gallery",
   "description": "Tracker professionnel de collection FC 27 Ultimate Team.",
   "lang": "fr-FR",
-  "start_url": "./fc.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#080b11",
   "theme_color": "#080b11",
