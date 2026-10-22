@@ -38,7 +38,8 @@ Dans Supabase, ouvre **Authentication > URL Configuration** et ajoute l’URL de
 
 ## Fonctionnement
 
-- Sans configuration Supabase, l’application reste utilisable en mode local.
+- La connexion Supabase est obligatoire pour enregistrer une progression : aucune modification n’est sauvegardée dans `localStorage`.
+- Tant que Supabase n’est pas configuré, la galerie reste consultable mais les actions de progression demandent de configurer puis d’utiliser un compte.
 - Avec Supabase configuré, le bouton **Connexion** permet de créer un compte ou de se connecter avec un pseudo et un mot de passe.
 - Après connexion, la progression, les notes et les sets personnalisés sont synchronisés automatiquement.
 - Les données locales restent conservées comme sauvegarde de secours.

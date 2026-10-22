@@ -761,9 +761,6 @@
             });
         });
 
-        // LOCAL STORAGE STORAGE KEY
-        const STORAGE_KEY = 'fc27_gallery_tracker_data_v2';
-
         // APPLICATION STATE
         let appState = {
             completedIds: [],
@@ -807,7 +804,6 @@
 
         // INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
-            loadSavedData();
             setupLeagueControls();
             renderGallery();
             updateStats();
@@ -819,35 +815,21 @@
             }
         });
 
-        // LOCALSTORAGE PERSISTENCE
-        function loadSavedData() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    appState.completedIds = Array.isArray(parsed.completedIds) ? parsed.completedIds : [];
-                    appState.ratings = parsed.ratings && typeof parsed.ratings === 'object' && !Array.isArray(parsed.ratings) ? parsed.ratings : {};
-                    appState.customSets = Array.isArray(parsed.customSets)
-                        ? parsed.customSets.filter(set => set && typeof set === 'object' && typeof set.id === 'string' && typeof set.name === 'string')
-                        : [];
-                    appState.collapsedCategories = Array.isArray(parsed.collapsedCategories) ? parsed.collapsedCategories : [];
-                }
-            } catch (err) {
-                console.error("Erreur de chargement des données:", err);
-                showToast("Erreur lors de la lecture de la sauvegarde", "danger");
-            }
-        }
-
         function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            if (!cloudUser) {
                 updateStats();
-                updateSaveStatus('Enregistré', 'text-ea-accent');
+                updateSaveStatus('Connexion requise', 'text-ea-gold');
+                return false;
+            }
+            try {
+                updateStats();
                 scheduleCloudSync();
+                return true;
             } catch (err) {
                 console.error("Erreur de sauvegarde:", err);
                 updateSaveStatus('Erreur', 'text-red-400');
-                showToast("Erreur lors de la sauvegarde locale", "danger");
+                showToast("Erreur lors de la préparation de la sauvegarde", "danger");
+                return false;
             }
         }
 
@@ -861,12 +843,16 @@
         }
 
         function setupCloudSync() {
+                document.getElementById('modal-auth-close').addEventListener('click', closeAuthModal);
+                authToggle.addEventListener('click', () => setAuthMode(authMode === 'login' ? 'signup' : 'login'));
+                authForm.addEventListener('submit', handleAuthSubmit);
+
                 const config = window.FC27_SUPABASE_CONFIG;
                 if (!config || !config.url || !config.anonKey || !window.supabase) {
-                    cloudAuthLabel.textContent = 'Local uniquement';
-                    cloudAuthButton.title = 'Configure Supabase pour activer la synchronisation';
-                    cloudAuthButton.addEventListener('click', () => showToast('Configure Supabase pour activer les comptes et la synchronisation.', 'info'));
-                    updateSaveStatus('Local enregistré', 'text-ea-accent');
+                    cloudAuthLabel.textContent = 'Connexion';
+                    cloudAuthButton.title = 'Connexion obligatoire pour enregistrer ta progression';
+                    cloudAuthButton.addEventListener('click', () => openAuthModal('login'));
+                    updateSaveStatus('Connexion requise', 'text-ea-gold');
                     return;
                 }
                 cloudClient = window.supabase.createClient(config.url, config.anonKey);
@@ -887,9 +873,16 @@
                     }
                     openAuthModal('login');
                 });
-                document.getElementById('modal-auth-close').addEventListener('click', closeAuthModal);
-                authToggle.addEventListener('click', () => setAuthMode(authMode === 'login' ? 'signup' : 'login'));
-                authForm.addEventListener('submit', handleAuthSubmit);
+        }
+
+        function requireCloudAuth() {
+            if (cloudUser) return true;
+            openAuthModal('login');
+            authError.textContent = cloudClient
+                ? 'Connecte-toi pour enregistrer ta progression dans le cloud.'
+                : 'La connexion cloud doit être configurée avant de pouvoir enregistrer.';
+            authError.classList.remove('hidden');
+            return false;
         }
 
         function openAuthModal(mode) {
@@ -917,6 +910,11 @@
 
         async function handleAuthSubmit(event) {
                 event.preventDefault();
+                if (!cloudClient) {
+                    authError.textContent = 'Supabase n’est pas encore configuré. Ajoute l’URL et la clé anon dans supabase-config.js.';
+                    authError.classList.remove('hidden');
+                    return;
+                }
                 const username = document.getElementById('auth-username').value.trim();
                 const password = document.getElementById('auth-password').value;
                 if (!/^[A-Za-z0-9_-]{3,24}$/.test(username)) {
@@ -997,7 +995,6 @@
                     appState.collapsedCategories = Array.isArray(remote.collapsedCategories)
                         ? remote.collapsedCategories.filter(category => typeof category === 'string')
                         : [];
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                     renderGallery();
                     updateStats();
                 } else {
@@ -1376,6 +1373,7 @@
             // Bind Category Toggle Click
             document.querySelectorAll('.toggle-cat-header').forEach(header => {
                 header.addEventListener('click', (e) => {
+                    if (!requireCloudAuth()) return;
                     const catName = header.getAttribute('data-cat');
                     if (appState.collapsedCategories.includes(catName)) {
                         appState.collapsedCategories = appState.collapsedCategories.filter(c => c !== catName);
@@ -1390,6 +1388,10 @@
             // Bind Checkbox Actions
             document.querySelectorAll('.custom-checkbox').forEach(chk => {
                 chk.addEventListener('change', (e) => {
+                    if (!requireCloudAuth()) {
+                        e.target.checked = !e.target.checked;
+                        return;
+                    }
                     const id = e.target.getAttribute('data-id');
                     if (e.target.checked) {
                         if (!appState.completedIds.includes(id)) appState.completedIds.push(id);
@@ -1406,6 +1408,10 @@
 
             document.querySelectorAll('.rating-select').forEach(select => {
                 select.addEventListener('change', (e) => {
+                    if (!requireCloudAuth()) {
+                        renderGallery();
+                        return;
+                    }
                     const id = e.target.getAttribute('data-rating-id');
                     const value = e.target.value;
                     if (value) appState.ratings[id] = value;
@@ -1420,6 +1426,7 @@
             document.querySelectorAll('.btn-delete-custom').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (!requireCloudAuth()) return;
                     const id = btn.getAttribute('data-id');
                     openConfirmModal("Supprimer ce set ?", "Voulez-vous supprimer définitivement ce set personnalisé ?", () => {
                         appState.customSets = appState.customSets.filter(s => s.id !== id);
@@ -1553,12 +1560,14 @@
 
             // Expand/Collapse All
             document.getElementById('btn-expand-all').addEventListener('click', () => {
+                if (!requireCloudAuth()) return;
                 appState.collapsedCategories = [];
                 saveData();
                 renderGallery();
             });
 
             document.getElementById('btn-collapse-all').addEventListener('click', () => {
+                if (!requireCloudAuth()) return;
                 appState.collapsedCategories = ["Championnats", "Clubs", "Raretés & Promos", "Nations"];
                 saveData();
                 renderGallery();
@@ -1566,6 +1575,7 @@
 
             // Modal Custom Set Trigger
             document.getElementById('btn-add-custom').addEventListener('click', () => {
+                if (!requireCloudAuth()) return;
                 modalCustom.classList.remove('hidden');
             });
 
@@ -1580,6 +1590,7 @@
             // Submit Custom Set Form
             document.getElementById('form-custom-set').addEventListener('submit', (e) => {
                 e.preventDefault();
+                if (!requireCloudAuth()) return;
                 const name = document.getElementById('custom-name').value.trim();
                 const category = document.getElementById('custom-category').value;
                 const reqCount = parseInt(document.getElementById('custom-count').value, 10) || 11;
@@ -1610,6 +1621,7 @@
 
             // Reset Button Trigger
             document.getElementById('btn-reset').addEventListener('click', () => {
+                if (!requireCloudAuth()) return;
                 openConfirmModal("Réinitialiser la progression ?", "Voulez-vous décocher toutes les cases de la Gallery ?", () => {
                     appState.completedIds = [];
                     appState.ratings = {};
@@ -1655,6 +1667,10 @@
 
             // Import JSON File
             fileImport.addEventListener('change', (e) => {
+                if (!requireCloudAuth()) {
+                    fileImport.value = '';
+                    return;
+                }
                 const file = e.target.files[0];
                 if (!file) return;
 
