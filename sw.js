@@ -1,5 +1,5 @@
-const CACHE_NAME = 'fc27-gallery-v4';
-const APP_SHELL = ['./', './index.html', './manifest.json', './icon.svg', './supabase-config.js', './logo-map.json'];
+const CACHE_NAME = 'fc27-gallery-v5';
+const APP_SHELL = ['./', './index.html', './gallery-v2.html', './manifest.json', './icon.svg', './supabase-config.js', './logo-map.json'];
 
 self.addEventListener('install', event => {
     event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
