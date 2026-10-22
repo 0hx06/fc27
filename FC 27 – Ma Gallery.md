@@ -23,7 +23,7 @@ Fonctionnalités :
 - export et import JSON de la progression ;
 - export CSV compatible avec Excel et Google Sheets ;
 - bouton retour en haut pour parcourir rapidement les grandes galeries ;
-- synchronisation cloud optionnelle avec Supabase et connexion par lien e-mail ;
+- synchronisation cloud optionnelle avec Supabase et connexion par pseudo + mot de passe ;
 - application installable sur téléphone/ordinateur (PWA) avec cache hors ligne ;
 - thème sombre optimisé pour mobile ;
 - ajout et suppression de sets personnalisés ;

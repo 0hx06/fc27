@@ -18,13 +18,17 @@ window.FC27_SUPABASE_CONFIG = {
 
 La clé `anon` peut être présente dans le navigateur. Ne mets jamais la clé `service_role` dans ce fichier.
 
-## 2. Autoriser le lien de connexion
+## 2. Configurer la connexion pseudo + mot de passe
 
-Dans Supabase, ouvre **Authentication > URL Configuration** et ajoute l’URL de ton futur site dans **Site URL** et **Redirect URLs**.
+Dans **Authentication > Providers > Email**, active la connexion e-mail/mot de passe et désactive la confirmation d’e-mail pour ce projet. Le site transforme chaque pseudo en identifiant technique interne (`pseudo@fc27.app`) ; l’utilisateur ne voit et ne saisit que son pseudo.
 
-Le bouton cloud utilise une connexion sans mot de passe : l’utilisateur reçoit un lien par e-mail.
+Les pseudos sont insensibles à la casse et doivent contenir uniquement des lettres, chiffres, `_` ou `-`. Les mots de passe sont traités directement par Supabase Auth et ne sont jamais écrits dans `user_gallery_state`.
 
-## 3. Publier sur Vercel
+## 3. Autoriser le site
+
+Dans Supabase, ouvre **Authentication > URL Configuration** et ajoute l’URL de ton site dans **Site URL** et **Redirect URLs**.
+
+## 4. Publier sur Vercel
 
 1. Crée un dépôt GitHub contenant `fc.html`, `supabase-config.js` et `supabase-schema.sql`.
 2. Sur [Vercel](https://vercel.com), importe le dépôt.
@@ -35,6 +39,6 @@ Le bouton cloud utilise une connexion sans mot de passe : l’utilisateur reçoi
 ## Fonctionnement
 
 - Sans configuration Supabase, l’application reste utilisable en mode local.
-- Avec Supabase configuré, le bouton **Connexion** envoie un lien magique par e-mail.
+- Avec Supabase configuré, le bouton **Connexion** permet de créer un compte ou de se connecter avec un pseudo et un mot de passe.
 - Après connexion, la progression, les notes et les sets personnalisés sont synchronisés automatiquement.
 - Les données locales restent conservées comme sauvegarde de secours.
