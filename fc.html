@@ -827,7 +827,9 @@
                     const parsed = JSON.parse(raw);
                     appState.completedIds = Array.isArray(parsed.completedIds) ? parsed.completedIds : [];
                     appState.ratings = parsed.ratings && typeof parsed.ratings === 'object' && !Array.isArray(parsed.ratings) ? parsed.ratings : {};
-                    appState.customSets = Array.isArray(parsed.customSets) ? parsed.customSets : [];
+                    appState.customSets = Array.isArray(parsed.customSets)
+                        ? parsed.customSets.filter(set => set && typeof set === 'object' && typeof set.id === 'string' && typeof set.name === 'string')
+                        : [];
                     appState.collapsedCategories = Array.isArray(parsed.collapsedCategories) ? parsed.collapsedCategories : [];
                 }
             } catch (err) {
@@ -863,6 +865,7 @@
                 if (!config || !config.url || !config.anonKey || !window.supabase) {
                     cloudAuthLabel.textContent = 'Local uniquement';
                     cloudAuthButton.title = 'Configure Supabase pour activer la synchronisation';
+                    cloudAuthButton.addEventListener('click', () => showToast('Configure Supabase pour activer les comptes et la synchronisation.', 'info'));
                     updateSaveStatus('Local enregistré', 'text-ea-accent');
                     return;
                 }
@@ -924,15 +927,24 @@
                 authSubmit.disabled = true;
                 authSubmit.textContent = 'Connexion...';
                 const authEmail = `${username.toLowerCase()}@fc27.app`;
-                const result = authMode === 'signup'
-                    ? await cloudClient.auth.signUp({ email: authEmail, password, options: { data: { username } } })
-                    : await cloudClient.auth.signInWithPassword({ email: authEmail, password });
-                authSubmit.disabled = false;
-                authSubmit.textContent = authMode === 'signup' ? 'Créer mon compte' : 'Se connecter';
+                let result;
+                try {
+                    result = authMode === 'signup'
+                        ? await cloudClient.auth.signUp({ email: authEmail, password, options: { data: { username } } })
+                        : await cloudClient.auth.signInWithPassword({ email: authEmail, password });
+                } catch (error) {
+                    console.error('Erreur réseau d’authentification:', error);
+                    result = { error: { message: 'network' } };
+                } finally {
+                    authSubmit.disabled = false;
+                    authSubmit.textContent = authMode === 'signup' ? 'Créer mon compte' : 'Se connecter';
+                }
                 if (result.error) {
                     authError.textContent = authMode === 'signup' && result.error.message.includes('already')
                         ? 'Ce pseudo est déjà utilisé.'
-                        : 'Connexion impossible. Vérifie ton pseudo et ton mot de passe.';
+                        : result.error.message === 'network'
+                            ? 'Serveur indisponible. Vérifie ta connexion puis réessaie.'
+                            : 'Connexion impossible. Vérifie ton pseudo et ton mot de passe.';
                     authError.classList.remove('hidden');
                     return;
                 }
@@ -952,22 +964,39 @@
         }
 
         async function syncFromCloud() {
-                const { data, error } = await cloudClient
-                    .from('user_gallery_state')
-                    .select('data')
-                    .eq('user_id', cloudUser.id)
-                    .maybeSingle();
+                let result;
+                try {
+                    result = await cloudClient
+                        .from('user_gallery_state')
+                        .select('data')
+                        .eq('user_id', cloudUser.id)
+                        .maybeSingle();
+                } catch (error) {
+                    console.error('Erreur réseau de lecture cloud:', error);
+                    updateSaveStatus('Erreur cloud', 'text-red-400');
+                    showToast('Serveur cloud indisponible', 'danger');
+                    return;
+                }
+                const { data, error } = result;
                 if (error) {
                     console.error('Erreur de lecture cloud:', error);
                     showToast('Synchronisation cloud indisponible', 'danger');
                     return;
                 }
                 if (data?.data) {
-                    const remote = data.data;
-                    appState.completedIds = Array.isArray(remote.completedIds) ? remote.completedIds : [];
-                    appState.ratings = remote.ratings && typeof remote.ratings === 'object' ? remote.ratings : {};
-                    appState.customSets = Array.isArray(remote.customSets) ? remote.customSets : [];
-                    appState.collapsedCategories = Array.isArray(remote.collapsedCategories) ? remote.collapsedCategories : [];
+                    const remote = data.data && typeof data.data === 'object' ? data.data : {};
+                    appState.completedIds = Array.isArray(remote.completedIds)
+                        ? [...new Set(remote.completedIds.filter(id => typeof id === 'string'))]
+                        : [];
+                    appState.ratings = remote.ratings && typeof remote.ratings === 'object' && !Array.isArray(remote.ratings)
+                        ? Object.fromEntries(Object.entries(remote.ratings).filter(([id, rating]) => typeof id === 'string' && ['S', 'A', 'B', 'C', 'D'].includes(rating)))
+                        : {};
+                    appState.customSets = Array.isArray(remote.customSets)
+                        ? remote.customSets.filter(set => set && typeof set === 'object' && typeof set.id === 'string' && typeof set.name === 'string')
+                        : [];
+                    appState.collapsedCategories = Array.isArray(remote.collapsedCategories)
+                        ? remote.collapsedCategories.filter(category => typeof category === 'string')
+                        : [];
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                     renderGallery();
                     updateStats();
@@ -979,11 +1008,17 @@
         async function syncToCloud() {
                 if (!cloudClient || !cloudUser) return;
                 updateSaveStatus('Synchronisation...', 'text-ea-cyan');
-                const { error } = await cloudClient.from('user_gallery_state').upsert({
-                    user_id: cloudUser.id,
-                    data: appState,
-                    updated_at: new Date().toISOString()
-                });
+                let error;
+                try {
+                    ({ error } = await cloudClient.from('user_gallery_state').upsert({
+                        user_id: cloudUser.id,
+                        data: appState,
+                        updated_at: new Date().toISOString()
+                    }));
+                } catch (caughtError) {
+                    console.error('Erreur réseau d’écriture cloud:', caughtError);
+                    error = caughtError;
+                }
                 if (error) {
                     console.error('Erreur d’écriture cloud:', error);
                     updateSaveStatus('Erreur cloud', 'text-red-400');
@@ -1612,10 +1647,18 @@
                     try {
                         const imported = JSON.parse(event.target.result);
                         if (imported && (Array.isArray(imported.completedIds) || Array.isArray(imported.customSets))) {
-                            appState.completedIds = Array.isArray(imported.completedIds) ? imported.completedIds : [];
-                            appState.ratings = imported.ratings && typeof imported.ratings === 'object' && !Array.isArray(imported.ratings) ? imported.ratings : {};
-                            appState.customSets = Array.isArray(imported.customSets) ? imported.customSets : [];
-                            appState.collapsedCategories = Array.isArray(imported.collapsedCategories) ? imported.collapsedCategories : [];
+                            appState.completedIds = Array.isArray(imported.completedIds)
+                                ? [...new Set(imported.completedIds.filter(id => typeof id === 'string'))]
+                                : [];
+                            appState.ratings = imported.ratings && typeof imported.ratings === 'object' && !Array.isArray(imported.ratings)
+                                ? Object.fromEntries(Object.entries(imported.ratings).filter(([id, rating]) => typeof id === 'string' && ['S', 'A', 'B', 'C', 'D'].includes(rating)))
+                                : {};
+                            appState.customSets = Array.isArray(imported.customSets)
+                                ? imported.customSets.filter(set => set && typeof set === 'object' && typeof set.id === 'string' && typeof set.name === 'string')
+                                : [];
+                            appState.collapsedCategories = Array.isArray(imported.collapsedCategories)
+                                ? imported.collapsedCategories.filter(category => typeof category === 'string')
+                                : [];
                             saveData();
                             renderGallery();
                             showToast("Sauvegarde importée avec succès !", "success");
