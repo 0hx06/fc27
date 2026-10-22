@@ -1251,11 +1251,13 @@
         let cloudClient = null;
         let cloudUser = null;
         let cloudSyncTimer = null;
+        const LOCAL_STATE_KEY = 'fc27-gallery-state';
 
         let activeStatusFilter = 'all';
 
         // INITIALIZATION
         window.addEventListener('DOMContentLoaded', () => {
+            loadLocalState();
             setupLeagueControls();
             renderGallery();
             updateStats();
@@ -1269,6 +1271,11 @@
 
         function saveData() {
             if (!cloudUser) {
+                if (!cloudClient) {
+                    saveLocalState();
+                    updateSaveStatus('Stocké sur cet appareil', 'text-ea-gold');
+                    return true;
+                }
                 updateStats();
                 updateSaveStatus('Connexion requise', 'text-ea-gold');
                 return false;
@@ -1282,6 +1289,39 @@
                 updateSaveStatus('Erreur', 'text-red-400');
                 showToast("Erreur lors de la préparation de la sauvegarde", "danger");
                 return false;
+            }
+        }
+
+        function loadLocalState() {
+            if (window.location.protocol === 'file:') return;
+            try {
+                const stored = localStorage.getItem(LOCAL_STATE_KEY);
+                if (!stored) return;
+                const parsed = JSON.parse(stored);
+                if (!parsed || typeof parsed !== 'object') return;
+                if (Array.isArray(parsed.completedIds)) {
+                    appState.completedIds = [...new Set(parsed.completedIds.filter(id => typeof id === 'string'))];
+                }
+                if (parsed.ratings && typeof parsed.ratings === 'object' && !Array.isArray(parsed.ratings)) {
+                    appState.ratings = Object.fromEntries(
+                        Object.entries(parsed.ratings).filter(([id, rating]) => typeof id === 'string' && ['S', 'A', 'B', 'C', 'D'].includes(rating))
+                    );
+                }
+                if (Array.isArray(parsed.customSets)) appState.customSets = parsed.customSets;
+                if (Array.isArray(parsed.collapsedCategories)) appState.collapsedCategories = parsed.collapsedCategories;
+            } catch (error) {
+                console.warn('Sauvegarde locale indisponible:', error);
+            }
+        }
+
+        function saveLocalState() {
+            if (window.location.protocol === 'file:') return;
+            try {
+                localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(appState));
+                updateStats();
+            } catch (error) {
+                console.error('Erreur de sauvegarde locale:', error);
+                showToast('Impossible de sauvegarder sur cet appareil', 'danger');
             }
         }
 
@@ -1304,7 +1344,7 @@
                     cloudAuthLabel.textContent = 'Connexion';
                     cloudAuthButton.title = 'Connexion obligatoire pour enregistrer ta progression';
                     cloudAuthButton.addEventListener('click', () => openAuthModal('login'));
-                    updateSaveStatus('Connexion requise', 'text-ea-gold');
+                    updateSaveStatus('Stockage local', 'text-ea-gold');
                     return;
                 }
                 cloudClient = window.supabase.createClient(config.url, config.anonKey);
@@ -1329,6 +1369,7 @@
 
         function requireCloudAuth() {
             if (cloudUser) return true;
+            if (!cloudClient) return true;
             openAuthModal('login');
             authError.textContent = cloudClient
                 ? 'Connecte-toi pour enregistrer ta progression dans le cloud.'
