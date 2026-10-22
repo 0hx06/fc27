@@ -1148,7 +1148,7 @@
 
         async function loadExternalLogos() {
             try {
-                const staticResponse = await fetch('./logo-map.json', { cache: 'force-cache' });
+                const staticResponse = await fetch('./logo-map.json?v=3', { cache: 'no-cache' });
                 if (staticResponse.ok) {
                     Object.assign(remoteLogos, await staticResponse.json());
                     Object.entries(LOGO_ALIASES).forEach(([alias, target]) => {
