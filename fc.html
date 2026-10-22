@@ -1147,21 +1147,37 @@
         }
 
         async function loadExternalLogos() {
+            try {
+                const staticResponse = await fetch('./logo-map.json', { cache: 'force-cache' });
+                if (staticResponse.ok) {
+                    Object.assign(remoteLogos, await staticResponse.json());
+                    Object.entries(LOGO_ALIASES).forEach(([alias, target]) => {
+                        if (remoteLogos[target]) remoteLogos[alias] = remoteLogos[target];
+                    });
+                    renderGallery();
+                }
+            } catch (error) {
+                console.warn('Carte locale des logos indisponible:', error);
+            }
             await Promise.allSettled(REMOTE_LOGO_LEAGUES.map(async (league) => {
-                const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams`);
-                if (!response.ok) return;
-                const payload = await response.json();
-                const teams = payload.sports?.[0]?.leagues?.[0]?.teams || [];
-                teams.forEach(({ team }) => {
-                    const logo = team.logos?.[0]?.href || `${ESPN_LOGO_CDN}/${team.id}.png`;
-                    if (logo) {
-                        const key = normalizeLogoName(team.displayName);
-                        remoteLogos[key] = logo;
-                        Object.entries(LOGO_ALIASES).forEach(([alias, target]) => {
-                            if (key.includes(target) || target.includes(key)) remoteLogos[alias] = logo;
-                        });
-                    }
-                });
+                try {
+                    const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams`);
+                    if (!response.ok) return;
+                    const payload = await response.json();
+                    const teams = payload.sports?.[0]?.leagues?.[0]?.teams || [];
+                    teams.forEach(({ team }) => {
+                        const logo = team.logos?.[0]?.href || `${ESPN_LOGO_CDN}/${team.id}.png`;
+                        if (logo) {
+                            const key = normalizeLogoName(team.displayName);
+                            remoteLogos[key] = logo;
+                            Object.entries(LOGO_ALIASES).forEach(([alias, target]) => {
+                                if (key.includes(target) || target.includes(key)) remoteLogos[alias] = logo;
+                            });
+                        }
+                    });
+                } catch {
+                    // The local map already covers the catalog when ESPN blocks cross-origin requests.
+                }
             }));
             renderGallery();
         }
