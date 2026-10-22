@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fc27-gallery-v1';
+const CACHE_NAME = 'fc27-gallery-v2';
 const APP_SHELL = ['./', './fc.html', './manifest.json', './icon.svg', './supabase-config.js'];
 
 self.addEventListener('install', event => {
