@@ -228,6 +228,99 @@
             border-top: 1px solid rgba(148, 163, 184, 0.16);
             padding-top: 0.75rem;
         }
+
+        body {
+            background:
+                radial-gradient(circle at 8% -10%, rgba(0, 255, 135, 0.12), transparent 28rem),
+                radial-gradient(circle at 92% 8%, rgba(0, 229, 255, 0.1), transparent 24rem),
+                #080b11;
+        }
+
+        header.glass-panel {
+            background: rgba(8, 11, 17, 0.78);
+            border-bottom-color: rgba(0, 255, 135, 0.15);
+        }
+
+        header .max-w-7xl {
+            min-height: 76px;
+        }
+
+        header h1 {
+            font-size: clamp(1rem, 2.3vw, 1.45rem);
+        }
+
+        header .bg-gradient-to-tr {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+        }
+
+        .gallery-card {
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 229, 255, 0.48) !important;
+            box-shadow: 0 18px 38px rgba(0, 229, 255, 0.1);
+        }
+
+        #league-nav {
+            scrollbar-width: thin;
+            mask-image: linear-gradient(to right, transparent, black 1%, black 96%, transparent);
+            padding-inline: 0.5rem;
+        }
+
+        #league-nav button {
+            background: rgba(17, 23, 35, 0.82);
+            transition: all 0.2s ease;
+        }
+
+        #league-nav button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 18px rgba(0, 255, 135, 0.12);
+        }
+
+        #gallery-container > section {
+            border-color: rgba(148, 163, 184, 0.16);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.14);
+        }
+
+        @media (max-width: 640px) {
+            header .max-w-7xl {
+                padding-top: 0.7rem;
+                padding-bottom: 0.7rem;
+            }
+
+            header .flex.items-center.space-x-3 {
+                width: 100%;
+            }
+
+            header .flex.items-center.space-x-3 + .flex {
+                width: 100%;
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 0.15rem;
+            }
+
+            header .flex.items-center.space-x-3 + .flex button,
+            header .flex.items-center.space-x-3 + .flex label {
+                flex: 0 0 auto;
+            }
+
+            main {
+                padding-top: 1rem !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-ea-bg text-gray-100 min-h-screen font-sans antialiased selection:bg-ea-accent selection:text-black pb-24 md:pb-12">
