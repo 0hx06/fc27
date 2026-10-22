@@ -321,6 +321,208 @@
                 animation-duration: 0.01ms !important;
             }
         }
+
+        /* Gallery-inspired presentation */
+        body {
+            background:
+                linear-gradient(180deg, rgba(4, 8, 13, 0.62), rgba(4, 8, 13, 0.96)),
+                radial-gradient(ellipse at 50% -8%, rgba(39, 93, 119, 0.32), transparent 42rem),
+                repeating-linear-gradient(105deg, rgba(255,255,255,.018) 0 1px, transparent 1px 74px),
+                #05080d;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .3;
+            background: linear-gradient(90deg, transparent 0 12%, rgba(64, 118, 137, .16) 12.1% 12.2%, transparent 12.3% 87.7%, rgba(64, 118, 137, .16) 87.8% 87.9%, transparent 88%);
+            z-index: -1;
+        }
+
+        header.glass-panel {
+            background: rgba(4, 8, 13, .72);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 14px 40px rgba(0,0,0,.35);
+        }
+
+        .fc-primary-nav a {
+            transition: color .2s ease, text-shadow .2s ease;
+        }
+        .fc-primary-nav a:hover,
+        .fc-primary-nav a.is-active {
+            color: #f8fafc;
+            text-shadow: 0 0 14px rgba(0,229,255,.55);
+        }
+        .fc-primary-nav a.is-active::after {
+            content: "";
+            display: block;
+            height: 2px;
+            margin-top: 7px;
+            background: #00e5ff;
+            box-shadow: 0 0 12px #00e5ff;
+        }
+
+        .fc-hero {
+            min-height: 190px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 2rem;
+            padding: 2.2rem 2rem 1.8rem;
+            border: 1px solid rgba(148,163,184,.13);
+            border-radius: 1.5rem;
+            background:
+                linear-gradient(90deg, rgba(5,8,13,.96), rgba(5,8,13,.57) 56%, rgba(5,8,13,.85)),
+                radial-gradient(ellipse at 70% 20%, rgba(0,229,255,.18), transparent 28rem),
+                linear-gradient(135deg, #13222b, #081016 68%);
+            box-shadow: inset 0 1px rgba(255,255,255,.07), 0 22px 55px rgba(0,0,0,.28);
+            overflow: hidden;
+            position: relative;
+        }
+        .fc-hero::after {
+            content: "";
+            position: absolute;
+            width: 34rem;
+            height: 18rem;
+            right: -8rem;
+            bottom: -12rem;
+            border: 1px solid rgba(0,229,255,.22);
+            border-radius: 50%;
+            box-shadow: 0 0 0 22px rgba(0,229,255,.035), 0 0 0 44px rgba(0,229,255,.025);
+        }
+        .fc-kicker {
+            color: #91a4ad;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+        }
+        .fc-kicker span {
+            display: inline-block;
+            width: 24px;
+            height: 2px;
+            margin-right: .5rem;
+            vertical-align: middle;
+            background: #00e5ff;
+            box-shadow: 0 0 10px #00e5ff;
+        }
+        .fc-hero h2 {
+            margin-top: .45rem;
+            font-family: Rajdhani, sans-serif;
+            font-size: clamp(2.4rem, 7vw, 5.5rem);
+            line-height: .82;
+            font-weight: 700;
+            letter-spacing: .05em;
+            color: #f8fafc;
+        }
+        .fc-hero h2 em {
+            color: #00e5ff;
+            font-style: normal;
+            text-shadow: 0 0 26px rgba(0,229,255,.28);
+        }
+        .fc-hero-copy {
+            max-width: 34rem;
+            margin-top: .85rem;
+            color: #93a4ad;
+            font-size: .8rem;
+        }
+        .fc-hero-stat {
+            position: relative;
+            z-index: 1;
+            min-width: 145px;
+            padding-left: 1.2rem;
+            border-left: 1px solid rgba(255,255,255,.16);
+            color: #7f929d;
+            font-size: .63rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+        }
+        .fc-hero-stat strong {
+            display: block;
+            margin: .2rem 0;
+            color: #fff;
+            font: 700 3.2rem/1 Rajdhani, sans-serif;
+        }
+        .fc-hero-stat small {
+            display: block;
+            color: #00ff87;
+            font-size: .58rem;
+            letter-spacing: .04em;
+        }
+
+        #league-nav button {
+            min-height: 42px;
+            border-radius: 999px;
+            background: rgba(9, 16, 23, .78);
+            border-color: rgba(148,163,184,.16);
+            color: #8da0aa;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        #league-nav button.bg-ea-accent {
+            color: #031015;
+            box-shadow: 0 0 20px rgba(0,229,255,.2);
+        }
+
+        #dashboard > div,
+        #filters-panel > section,
+        #empty-state {
+            background: rgba(11, 18, 25, .74);
+            border-color: rgba(148,163,184,.14);
+            box-shadow: inset 0 1px rgba(255,255,255,.045), 0 18px 45px rgba(0,0,0,.18);
+        }
+
+        #gallery-container > div {
+            background: rgba(8, 14, 20, .68);
+            border-color: rgba(148,163,184,.14);
+            border-radius: 1rem;
+        }
+        #gallery-container > div > .toggle-cat-header {
+            background: linear-gradient(90deg, rgba(25,44,53,.78), rgba(10,18,25,.82));
+            border-color: rgba(148,163,184,.14);
+            min-height: 68px;
+        }
+        #gallery-container > div > .toggle-cat-header h2 {
+            letter-spacing: .12em;
+        }
+        .gallery-card {
+            min-height: 220px;
+            border-radius: 1rem;
+            background:
+                linear-gradient(145deg, rgba(42, 60, 68, .6), rgba(7, 13, 18, .96)),
+                radial-gradient(circle at 90% 5%, rgba(0,229,255,.16), transparent 45%);
+            border-color: rgba(148,163,184,.16) !important;
+        }
+        .gallery-card .set-icon {
+            width: 62px;
+            height: 62px;
+            flex-basis: 62px;
+            border-radius: 15px;
+            background: linear-gradient(145deg, rgba(56,81,91,.8), rgba(7,14,20,.9));
+        }
+        .gallery-card .set-icon img {
+            width: 46px;
+            height: 46px;
+        }
+        .gallery-card:hover {
+            transform: translateY(-3px) scale(1.008);
+            border-color: rgba(0,229,255,.48) !important;
+            box-shadow: 0 16px 32px rgba(0,0,0,.3), 0 0 22px rgba(0,229,255,.09);
+        }
+
+        @media (max-width: 640px) {
+            .fc-hero {
+                min-height: 160px;
+                padding: 1.4rem;
+            }
+            .fc-hero-stat {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-ea-bg text-gray-100 min-h-screen font-sans antialiased selection:bg-ea-accent selection:text-black pb-24 md:pb-12">
@@ -339,6 +541,12 @@
                     <p class="text-xs text-gray-400 hidden sm:block">Suivi officiel Ultimate Team & Succès de Collection</p>
                 </div>
             </div>
+
+            <nav class="fc-primary-nav hidden lg:flex items-center gap-5 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500" aria-label="Navigation principale">
+                <a class="is-active" href="#gallery-container">Gallery</a>
+                <a href="#dashboard">Résumé</a>
+                <a href="#filters-panel">Catégories</a>
+            </nav>
 
             <!-- Action Buttons -->
             <div class="flex items-center space-x-2 text-xs sm:text-sm">
@@ -370,6 +578,18 @@
 
     <!-- MAIN CONTAINER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <section class="fc-hero">
+            <div>
+                <p class="fc-kicker"><span></span> Ultimate Team / Collection</p>
+                <h2>TA <em>GALLERY</em></h2>
+                <p class="fc-hero-copy">Explore les championnats, collectionne les clubs et construis ton score de galerie.</p>
+            </div>
+            <div class="fc-hero-stat">
+                <span>GALLERY LEVEL</span>
+                <strong id="hero-level">01</strong>
+                <small><i class="fa-solid fa-bolt"></i> progression synchronisée</small>
+            </div>
+        </section>
         <nav id="league-nav" class="flex gap-2 overflow-x-auto pb-1" aria-label="Navigation des championnats"></nav>
 
         <!-- DISCLAIMER BANNER -->
@@ -381,7 +601,7 @@
         </div>
 
         <!-- DASHBOARD STATS SECTION -->
-        <section class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <section id="dashboard" class="grid grid-cols-1 md:grid-cols-12 gap-4">
             
             <!-- Global Progress Box -->
             <div class="md:col-span-5 bg-ea-card rounded-2xl p-5 border border-ea-border relative overflow-hidden flex items-center justify-between shadow-xl">
@@ -471,6 +691,7 @@
         </section>
 
         <!-- FILTERS & SEARCH BAR -->
+        <section id="filters-panel">
         <section class="bg-ea-card p-4 rounded-2xl border border-ea-border space-y-3 shadow-lg">
             <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
                 
@@ -535,6 +756,8 @@
                 </div>
 
             </div>
+        </section>
+
         </section>
 
         <!-- CHECKLIST / CATEGORY CARDS CONTAINER -->
@@ -1426,6 +1649,8 @@
             const completed = allSets.filter(s => appState.completedIds.includes(s.id)).length;
             const remaining = total - completed;
             const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            const heroLevel = document.getElementById('hero-level');
+            if (heroLevel) heroLevel.textContent = String(Math.max(1, Math.floor(pct / 10) + 1)).padStart(2, '0');
 
             // Global stats elements
             document.getElementById('stat-completed-count').innerText = completed;
