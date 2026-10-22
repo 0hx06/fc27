@@ -361,6 +361,9 @@
                 <button id="btn-cloud-auth" title="Synchroniser dans le cloud" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                     <i class="fa-solid fa-cloud text-ea-cyan"></i><span id="cloud-auth-label" class="hidden lg:inline">Connexion</span>
                 </button>
+                <span id="save-status" class="hidden xl:inline-flex items-center gap-1.5 text-[10px] text-gray-500" title="État de sauvegarde">
+                    <i class="fa-solid fa-circle text-ea-accent text-[7px]"></i><span>Enregistré</span>
+                </span>
             </div>
         </div>
     </header>
@@ -787,6 +790,7 @@
         const backToTop = document.getElementById('back-to-top');
         const cloudAuthButton = document.getElementById('btn-cloud-auth');
         const cloudAuthLabel = document.getElementById('cloud-auth-label');
+        const saveStatus = document.getElementById('save-status');
         const authModal = document.getElementById('modal-auth');
         const authForm = document.getElementById('form-auth');
         const authTitle = document.getElementById('auth-title');
@@ -836,11 +840,22 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                 updateStats();
+                updateSaveStatus('Enregistré', 'text-ea-accent');
                 scheduleCloudSync();
             } catch (err) {
                 console.error("Erreur de sauvegarde:", err);
+                updateSaveStatus('Erreur', 'text-red-400');
                 showToast("Erreur lors de la sauvegarde locale", "danger");
             }
+        }
+
+        function updateSaveStatus(label, colorClass) {
+            if (!saveStatus) return;
+            const text = saveStatus.querySelector('span');
+            const dot = saveStatus.querySelector('i');
+            text.textContent = label;
+            dot.className = `fa-solid fa-circle text-[7px] ${colorClass}`;
+            saveStatus.title = `${label} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         }
 
         function setupCloudSync() {
@@ -848,6 +863,7 @@
                 if (!config || !config.url || !config.anonKey || !window.supabase) {
                     cloudAuthLabel.textContent = 'Local uniquement';
                     cloudAuthButton.title = 'Configure Supabase pour activer la synchronisation';
+                    updateSaveStatus('Local enregistré', 'text-ea-accent');
                     return;
                 }
                 cloudClient = window.supabase.createClient(config.url, config.anonKey);
@@ -962,12 +978,18 @@
 
         async function syncToCloud() {
                 if (!cloudClient || !cloudUser) return;
+                updateSaveStatus('Synchronisation...', 'text-ea-cyan');
                 const { error } = await cloudClient.from('user_gallery_state').upsert({
                     user_id: cloudUser.id,
                     data: appState,
                     updated_at: new Date().toISOString()
                 });
-                if (error) console.error('Erreur d’écriture cloud:', error);
+                if (error) {
+                    console.error('Erreur d’écriture cloud:', error);
+                    updateSaveStatus('Erreur cloud', 'text-red-400');
+                } else {
+                    updateSaveStatus('Synchronisé', 'text-ea-accent');
+                }
         }
 
         // GET ALL COMBINED SETS
