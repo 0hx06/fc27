@@ -1,0 +1,18 @@
+{
+  "name": "FC 27 Ultimate Team - My Gallery",
+  "short_name": "FC 27 Gallery",
+  "description": "Tracker professionnel de collection FC 27 Ultimate Team.",
+  "lang": "fr-FR",
+  "start_url": "./fc.html",
+  "display": "standalone",
+  "background_color": "#080b11",
+  "theme_color": "#080b11",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
